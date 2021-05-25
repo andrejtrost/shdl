@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<title>SHDL Help</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h1>Small Hardware Description Language</h1>
+
+<a href="tutor/decoder.htm">Tutorial </a> | <a href="tutor/si/navodila.htm">Navodila <img src="tutor/si/si.png" alt="SI" title="SI"></a>
+<p>This is a brief presentation of online digital circuit design educational tool with SHDL, a hardware description language based on simplified VHDL syntax.
+The tool is used to design small digital circuit models in a web browser (Chrome or Firefox), simulate the models with a graphical test bench
+and automatically convert to synthesizable VHDL.</p>
+
+<h2>Modeling and simulation in 3 steps<h2>
+
+<h3>1. Circuit model and signals</h3>
+
+<p>A digital circuit model is described in simplified language SHDL. The model consists of
+entity name, signal declarations and statement block between <b>begin</b> in <b>end</b>.
+An example of 4-bit counter with count enable (en):</p>
+
+<div class="w3-code">entity counter<br>
+&nbsp;en: in u1<br>
+&nbsp;cnt: out u4<br>
+begin<br>
+&nbsp;if (en) then<br> 
+&nbsp;&nbsp; cnt <= cnt + 1<br> 
+&nbsp;end<br>
+end
+</div>
+
+<ul><li>External circuit ports are declared using <b>in</b> our <b>out</b> mode keyword and data type. 
+For internal circuit signals we define only data type. Signals with the same mode and type can be declared as a list.</li>
+<ul><li>a,b,c: in u4</li></ul>
+
+<li>Data type declaration includes letter <b>u</b> (unsigned) or <b>s</b> (signed) and number of bits between 1 and 64.</li>
+<ul><li>u1 is one bit, u4 is 4-bit unsigned and s8 is 8-bit signed signal</li></ul>
+<li>Initial value of signals can be assigned during declaration. The assigned constant notations can be decimal (5), hexadecimal (0x5)
+or binary ("0101" or 0b0101).</li>
+<ul><li>cnt: out u4 = 1</li></ul>
+<li>An array of vectors is declared with by writing the number of elements before letter <b>u</b> or <b>s</b>.</li>
+<ul><li>10u4 is an array of ten 4-bit unsigned vectors</li></ul>
+<li>Enumerated data type used for FSM modeling is declared as a list of identifiers.</li>
+<ul><li>state: (idle, run, stop);</li></ul>
+</ul>
+
+Signals observed in simulation should be declared in a table under the <span class="w3-blue">&nbsp;Model&nbsp;</span> tab.
+Click on <span class="w3-text-blue">Add</span> is used to add table rows and define signal name(s), mode (in, out) and data type.
+The mode field should be empty for internal signals. If the data type is empty, the signal declaration from the circuit description
+or default data type setting is used.</p>
+
+<h4>Design tip: </h4>
+<p>Begin describing the circut by setting circuit name and filling the model ports and signals table. Then click on 
+<span class="w3-text-blue">New</span> and the tool will generate circuit model declarations in the input editor.
+Exceptions are array and enumerated data types, which can not be declared in the model table.</p>
+
+<img src="doc/ports.png">
+
+
+<p>The statement block contains signal assignment and conditional statements in simplified VHDL syntax.
+Statements present parts of a digital circuit operating in parallel (e.g. concurrent data-flow operations).
+The SHDL modeling rules:</p>
+
+<ul>
+<li>A statement <b>block</b> has one or more statements separated by a new line or semicolon.</li>
+<li>An assignment operator <code class="w3-codespan">=</code> describes combinational logic. A set of
+VHDL-like operators is used for describing assigned expressions:
+<ul><li>unary: -x, <b>not</b> x</li>
+<li>arithmetic: a <b>+</b> b, a <b>-</b> b, a <b>*</b> b</li>
+<li>logic: a <b>and</b> b, a <b>or</b> b, a <b>xor</b></li>
+<li>concatenation and slicing: a <b>&amp;</b> b, a(0), b(3:0)</li> 
+</ul>
+</li>
+<li>The operator <code class="w3-codespan"><=</code> describes sequential logic, where the assignment is
+executed on rising edge of the clock. There is only one clock signal in the model, which is automatically inferred
+when using sequential assignments (you should not define clk in circuit ports).</li>
+<li>Compact conditional expressions are: <b>when...else</b> assignment or <b>if</b> statement written in a single line:
+<div class="w3-code">sig = expression1 <b>when</b> condition <b>else</b> expression2;<br>
+<b>if</b> (condition) statement;</div>
+</li>
+<li>Conditional statements include a statement block after <b>then</b> and optional <b>else</b>. The statement ends with
+the reserved word <b>end</b>, e.g.:<br>
+<b>if</b> condition <b>then</b> statement block <b>end</b></li>
+<li>Consecutive (priority) conditions can be described using <b>elsif</b>, similar to VHDL syntax.</li>
+<li>Inside a statement block is allowed only one assignment to individual singnal!</li>
+<li>The signal assignment statement order inside the statement block is not important.</li>
+</ul>
+
+<h3>2. Model parsing</h3>
+
+<p>A click to <span class="w3-teal">&nbsp;Parse&nbsp;</span> starts model analysis, parsing and transformation. The parser messages appear below the code editor. Successful parsing produces a message
+"Parse finished.", otherwise the error description appears.
+
+<p>Example: the code line <span class="w3-light-gray">&nbsp; cnt >= cnt + 1&nbsp;</span> outputs error:<br>
+<span class="w3-text-red">Parse Error</span> at 6:12: Expecting '='!<br>
+with information about error location (line 6, character 12) and description that the compiler expects
+assignment operator.</p>
+
+<p>The circuit model is transformed into internal descriprion presented in Analysis tab. Summary of the
+parsed circuit model resource estimation is available there. The model transformed to VHDL can be found in the
+<span class="w3-blue">&nbsp;VHDL&nbsp;</span> tab. A click to <span class="w3-text-blue">copy</span> is used to select and copy the generated code to clipboard for an easy transfer to external 
+ VHDL-based tools.</p>
+
+<h3>3. Simulation</h3>
+<img src="doc/simulation.png">
+
+<p>Parsing the model updates the simulation waveform with the signals from the model table. 
+To prepare simulation, you have to enter the number of clock cycles and set 
+the input signals. By clicking on the waveform of an one-bit input signal, 
+the signal value toggles between zero and one. Multi-bit input signals are set 
+to a given integer value by entering value into the form and clicking on the waveform.</p>
+
+<p>The simulation is executed with a click on <span class="w3-light-blue w3-text-black">&nbsp;Run&nbsp;</span>
+and we can immediately observe the resulting waveform. If you click Run next time, the simulation executes
+again, but this time starting from the last state of the circuit (this is important for sequential circuits).
+In order to start simulation from the reset state, you have to parse the model again and then click on Run.</p>
+
+<h4>Simulation tip: </h4>
+<p>Click on the input signal name to toggle the signal value in all cycles. Click on a signal with the right mouse button to change
+the waveform display from integer to binary, from binary to analog and from analog back to integer.</p>
+</div>
+
+</div>
+</body>

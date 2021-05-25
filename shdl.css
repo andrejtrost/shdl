@@ -1,0 +1,181 @@
+table.sigb td {
+  padding: 3px;
+}
+
+table.sigb tbody, table.sigb thead { 
+            display: block; 
+        }
+
+table.sigb  tbody { 
+              
+            /* Set the height of table body */ 
+            height: 275px;  
+              
+            /* Set vertical scroll */ 
+            overflow-y: auto; 
+              
+            /* Hide the horizontal scroll */ 
+            overflow-x: hidden;  
+        } 
+
+#src {
+    font: small courier;
+    -moz-tab-size: 3; /* Firefox */
+    -o-tab-size: 3; /* Opera 10.6-12.1 */
+    tab-size: 3;
+}
+#noselect {
+    -webkit-user-select: none; /* webkit (safari, chrome) browsers */
+    -moz-user-select: none; /* mozilla browsers */
+    -khtml-user-select: none; /* webkit (konqueror) browsers */
+    -ms-user-select: none; /* IE10+ */
+}
+#noselect a:hover {
+ cursor:pointer;
+}
+
+#pointto a:hover {
+ cursor:pointer;
+}
+
+.w3-sand .helpdoc { 
+  float:right; 
+}
+
+.helpdoc a:link {
+	text-decoration: none;
+}
+
+/*inputfile, author: Osvaldas Valutis for Codrops */
+.js .inputfile {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.inputfile + label {    
+	color:#2196F3;	
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+}
+
+.inputfile:focus + label,
+.inputfile.has-focus + label {
+    outline: 1px dotted #000;
+    outline: -webkit-focus-ring-color auto 5px;
+}	
+
+.CodeMirror {
+	border-top: 1px solid black; 
+	border-bottom: 1px solid black;
+}
+
+ /* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  /*border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+
+  /* Position the tooltip text */
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -60px;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+/* Tooltip arrow */
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+} 
+
+span.circle {
+  font-family: monospace;
+  padding: 6px 6px;
+  color: lightslategrey;
+  background-color: lightgrey;
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+}
+
+/* [OVERLAY] */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  /* We hide the overlay by default */
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.5s;
+}
+/* This CSS class will show the overlay */
+#overlay.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* [OVERLAY CLOSE BUTTON] */
+#o-close {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: #fff;
+  font-size: 2em;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+      #mynetwork {
+        margin: 0px;
+        padding: 0px;
+      }
+
+      #mynetwork {
+        position: fixed;
+        left: 10px;
+        top: 10px;
+        bottom: 10px;
+        right: 50px;
+        min-height: 100vh;
+        border-right: 1px solid lightgray;
+        background: white;
+      }

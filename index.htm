@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="js" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>SHDL 3.7</title>
+<meta name="description" content="High-Level Logic Modeling and simulation with VHDL output">
+<meta name="keywords" content="logic, model, simulator, VHDL, testbench">
+<meta name="author" content="Andrej Trost">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="codemirror/codemirror.css">
+<script src="codemirror/cm.js"></script>
+<script src="codemirror/matchbrackets.js"></script>
+<script src="codemirror/vhdl.js"></script>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" type="text/css" href="shdl.css">
+<script type="text/javascript" src="userint.js"></script>
+<script type="text/javascript" src="vector.js"></script>
+<script type="text/javascript" src="lexer.js"></script>
+<script type="text/javascript" src="model.js"></script>
+<script type="text/javascript" src="parsesim.js"></script>
+<script type="text/javascript" src="wave.js"></script>
+<script type="text/javascript" src="vhdl.js"></script>
+<script type="text/javascript" src="board.js"></script>
+<script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+</head>
+<body onload="graf_init(); HDLinit();">
+<div id="overlay">
+ <div id="o-close" onclick="CloseGraph()">X</div>
+ <div id="mynetwork"></div>
+</div>
+
+<div class="w3-container w3-padding">
+<div class="w3-row-padding">
+
+<div class="w3-col m4 l6">
+<div class="w3-sand">
+<input type="Button" id="parse" class="w3-button w3-teal" value="Parse" onclick="parseCode(); VHDLout(); refresh(true);">
+<button onclick="toggleSection('nastavitve')" class="w3-btn w3-left-align">Setup</button>
+<input type="file" name="file[]" id="infile" class="inputfile" data-multiple-caption="{count} files selected" multiple="">
+&nbsp;
+<label for="infile"><span>Load…</span></label>
+&nbsp; <span id="pointto"><a onclick="save();" id="SaveHDL" class="w3-text-blue" >Save</a></span>
+&nbsp; <span class="helpdoc"><a href="help.htm">Help !</a>&nbsp;</span>
+</div>
+
+<div id="nastavitve" class="w3-container w3-hide w3-sand">
+<p>
+<b>Default data type:</b>
+<select id="type">
+    <option value="u">unsigned</option>
+	<option value="s">signed</option>    
+</select>
+<input value="4" size="3" id="width" type="text"> bits</p>
+<p><b>Operators:</b><br>
+<input type="radio" id="syntaxv" name="syntax" value="v" checked="checked"> VHDL (and, or, xor, not, &, =, /=)<br>
+<input type="radio" id="syntaxc" name="syntax" value="c"> Verilog/C (&amp;, |, ^, ~, <<, >>, ==, !=)
+</p>
+<p><input type="checkbox" id="lang2008" name="lang2008"> VHDL 2008 &nbsp;
+<input type="checkbox" id="stdlogic" name="stdlogic"> std_logic ports &nbsp;
+<input type="checkbox" id="rst" name="rst"> async reset &nbsp;
+<input type="checkbox" id="rtl" name="rtl"> RTL
+</p>
+<p><b>Error report:</b> <input type="checkbox" id="mark" name="mark" checked> mark <input type="checkbox" id="english" name="english" checked> english</p>
+<p><b>Sim period: </b><input value="10" size="3" id="clk_per" type="text"> ns &nbsp;
+<input type="checkbox" id="vcd" name="vcd" onclick="getSetup();"> save waveform &nbsp;
+<input type="checkbox" id="boardOn" name="boardOn" onclick="getSetup();"> Board
+</p>
+<p><span id="version"></span> (c) A. Trost, Fakulteta za elektrotehniko, <a href="../index.html">LNIV</a>, 2018-2021</p>
+</div>
+
+<textarea id="src" name="src" onchange="changeSource();" style="display: none;">
+</textarea>
+
+<div id="errlog" style="height: 110px;overflow: auto;background-color: #fbfaf9;word-break: normal !important;word-wrap: normal !important;white-space: pre !important;">
+</div>
+</div>
+
+<div class="w3-col m4 l6">
+<input type="Button" id="ports" class="w3-button w3-light-gray" value="Model" onclick="switchDiv('porttable');">
+<input type="Button" id="anal" class="w3-button w3-light-gray" value="Analysis" onclick="switchDiv('analysis');">
+<input type="Button" id="vhdl" class="w3-button w3-light-gray" value="VHDL" onclick="switchDiv('vhdlout'); VHDLout();">
+<input type="Button" id="board" style="display: none;" class="w3-button w3-light-gray" value="Board" onclick="switchDiv('boardsim');">
+
+<div class="w3-row-padding" id="porttable">
+
+<div class="w3-col m12 l7">
+<p id="noselect">
+<div class="tooltip"><input value="Logic" size="10" id="comp_name" type="text">
+<span class="tooltiptext">Circuit name</span>
+</div>
+<span id="noselect"> <a onclick="newEntity();" class="w3-text-blue" >New</a>
+</span></p>
+<p>
+<b>Ports &amp; Signals</b>
+</p>
+<table cellspacing="0" class="w3-table-all w3-hoverable sigb" id="sigtable" name="sigtable">
+  <thead><tr class="w3-small">
+    <th style="width:60%" id="noselect">Name <a onclick="addPort()" class="w3-text-blue" >Add</a> <a onclick="removePort()" class="w3-text-blue">Del</a></th>
+	<th style="width:20%" class="tooltip">Mode<span class="tooltiptext">in,out,</span></th>
+    <th style="width:20%" class="tooltip">Type<span class="tooltiptext">u1,u2,u8,s2...</span></th>
+  </tr></thead>
+  <tbody>
+  <tr>  
+  <td id="inName"><input id='name1' size='12' value='' type='text' onchange="changeSource();"><br></td>
+  <td id="inMode"><input id='mode1' size='1' value='' type='text' onchange="changeSource();"><br></td>
+  <td id="inType"><input id='type1' size='5' value='' type='text' onchange="changeSource();"><br></td>
+  <td><a onclick='delPort(1)' class='w3-text-blue' >x</a></td>
+  </tr>
+  <tr>
+  <td><input id='name2' size='12' value='' type='text' onchange="changeSource();"><br></td>
+  <td><input id='mode2' size='1' value='' type='text' onchange="changeSource();"><br></td>
+  <td><input id='type2' size='5' value='' type='text' onchange="changeSource();"><br></td>
+  <td><a onclick='delPort(2)' class='w3-text-blue' >x</a></td>
+  </tr>
+  <tr>
+  <td><input id='name3' size='12' value='' type='text' onchange="changeSource();"><br></td>
+  <td><input id='mode3' size='1' value='' type='text' onchange="changeSource();"><br></td>
+  <td><input id='type3' size='5' value='' type='text' onchange="changeSource();"><br></td>
+  <td><a onclick='delPort(3)' class='w3-text-blue' >x</a></td>
+  </tr>
+</tbody>
+</table>
+</div>
+
+</div>
+
+<div class="w3-row-padding" id="analysis" style="display: none;">
+<div class="w3-col m12 l7" style="height:330px; overflow-y: auto">
+<p id="noselect"><b>Analysis</b>&nbsp;&nbsp; <a onclick="CircGraph()" class="w3-text-blue" >Circuit graph</a></p>
+
+<pre id="codevisit"></pre>
+</div>
+
+<div class="w3-col m12 l5">
+<p><b>Resources</b>
+<div id="stat" style="height: 140px; background-color: #fbfaf9;">
+</div>
+</div>
+</div>
+
+<div class="w3-row" id="vhdlout" style="display: none;">
+<p id="noselect"><a id="output" onclick="VHDLout();" class="w3-text-blue" >VHDL</a>&nbsp;&nbsp;
+<a onclick="TBout();" class="w3-text-blue" >TestBench</a>&nbsp;&nbsp; 
+<a onclick="VCDout();" class="w3-text-blue" >VCD</a>&nbsp;&nbsp; 
+<a onclick="copyVHDL()" class="w3-text-blue" >Copy</a></b></p>
+<div class="w3-padding" style="height: 450px;overflow: auto;background-color: #ffffff;">
+<pre id="vhdllog" class="w3-small"></pre>
+</div>
+</div>
+
+<div class="w3-row" id="boardsim" style="display: none;">
+<p><input type="range" id="speed" style="width:10px;height:25px;" orient="vertical" min="0" max="2" step="1" value="1">
+<input type="button" id="brdrun" class="w3-button w3-green" onclick="startstop();" value="Start">
+
+<span id="brdstep">0</span>
+</p>
+
+<canvas oncontextmenu="return false;" id="brd" tabindex="1" width="250px" height="150px" style="border:1px solid #c3c3c3;"> </canvas>  
+<div>
+<input type="button" id="rot0" class="w3-circle w3-brown" onclick="boardRot(0);" value="L">
+<input type="button" id="rot1" class="w3-circle w3-brown" onclick="boardRot(1);" value="R">
+&nbsp;
+<input type="button" id="btn3" class="w3-circle w3-tiny w3-lightgray" onclick="boardBtn(3);" value="3">
+<input type="button" id="btn2" class="w3-circle w3-tiny w3-lightgray" onclick="boardBtn(2);" value="2">
+<input type="button" id="btn1" class="w3-circle w3-tiny w3-lightgray" onclick="boardBtn(1);" value="1">
+<input type="button" id="btn0" class="w3-circle w3-tiny w3-lightgray" onclick="boardBtn(0);" value="0">
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="w3-display-container w3-padding-small">
+<div class="w3-cell"><input type="Button" id="step" class="w3-button w3-light-blue" value=" Run " onclick="run(); refresh();">&nbsp;</div>
+
+<div class="w3-cell"><input type="button" class="w3-button w3-light-blue" onclick="wave.zoom(1)" value="+"></div>
+<div class="w3-cell w3-light-gray" style="width:50px;" id="zoomf"> 100%</div> 
+<div class="w3-cell"><input type="button" class="w3-button w3-light-blue" onclick="wave.zoom(-1)" value="-"></div>
+<div class="w3-cell">
+<input id="slide" type="range" class="slider" min="0" max="950" step="25" value="0" ></div>
+<div class="w3-cell w3-light-gray" id="sliderAmount" style="width:50px;"></div>
+<div class="w3-cell"><b>&nbsp;Cycles: </b>
+<input size="2" maxlength="3" id="cycles" value="9" type="text" onchange="graf_refresh();"></div>
+<div class="w3-cell"><b>&nbsp;Value: </b><input value="1" size="3" id="bus" type="text">
+&nbsp; <input type="checkbox" id="autoinc" name="autoinc"> autoinc</div>
+
+</div>
+
+<div class="w3-bar w3-display-container" style="overflow: auto;">  
+<canvas oncontextmenu="return false;" id="wave" tabindex="1" width="1200px" height="400px" style="border:1px solid #c3c3c3;"> </canvas>  
+</div>
+
+</div>
+
+<script>
+  var editor = CodeMirror.fromTextArea(document.getElementById("src"), {
+    lineNumbers: true,
+    matchBrackets: true,
+    mode: {
+      name: "vhdl",
+    }
+  });
+    
+  function unmarkSave() {
+    document.getElementById("SaveHDL").innerHTML="Save";
+	editor.on("inputRead", markSave);
+  }  
+	
+  function markSave() {	// mark Save*
+    document.getElementById("SaveHDL").innerHTML="Save*";
+	editor.off("inputRead", markSave);	
+  }
+  
+  editor.on("inputRead", markSave);
+  
+  document.addEventListener("keydown", function(e) {
+	if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)  && e.keyCode == 83) {
+		e.preventDefault();
+		// Process the event here (such as click on submit button)
+		save();
+	}
+  }, false);
+</script>
+
+</body></html>
