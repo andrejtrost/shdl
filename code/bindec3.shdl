@@ -1,0 +1,11 @@
+[
+a: in u2
+y: out u4
+]
+entity bindec3
+ a: in u2;
+ y: out u4;
+ table: 4u4 = "0001","0010","0100","1000";
+begin
+ y = table(a)
+end

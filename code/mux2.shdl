@@ -1,0 +1,12 @@
+[
+d: in u8
+s: in u3
+o: out u1
+]
+entity mux2
+ d: in u8;
+ s: in u3;
+ o: out u1;
+begin
+ o = d(s)
+end

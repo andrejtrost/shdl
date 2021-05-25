@@ -1,0 +1,14 @@
+[
+load: in u1
+data: in u8
+r: out u8
+]
+entity reg
+ load: in u1;
+ data: in u8;
+ r: out u8
+begin
+ if load then
+   r <= data
+ end
+end

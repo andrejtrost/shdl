@@ -1,0 +1,17 @@
+[
+d: in u4
+y: out u2
+v: out u1
+]
+entity priority
+ d: in u4;
+ y: out u2;
+ v: out u1;
+begin
+ if d(3)=1 then y=3; v=1
+ elsif d(2)=1 then y=2; v=1
+ elsif d(1)=1 then y=1; v=1
+ elsif d(0)=1 then y=0; v=1
+ else y=0; v=0
+ end
+end

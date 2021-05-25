@@ -1,0 +1,16 @@
+[
+d: in u1
+q3, q2, q1, q0:  u1
+output:  u4
+]
+entity sipo
+ d: in u1;
+ output: out u4;
+ q3,q2,q1,q0: u1;
+begin
+ q0<=d
+ q1<=q0
+ q2<=q1
+ q3<=q2
+ output=q3 & q2 & q1 & q0  
+end

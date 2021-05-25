@@ -1,0 +1,18 @@
+[
+a: in u2
+y: out u4
+]
+entity bindec2a
+ a: in u2;
+ y: out u4;
+begin
+ if a=0 then 
+   y="0001"
+ elsif a=1 then 
+   y="0010"
+ elsif a=2 then 
+   y="0100"
+ else 
+   y="1000"
+ end
+end

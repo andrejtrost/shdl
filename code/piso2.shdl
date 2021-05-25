@@ -1,0 +1,19 @@
+[
+d: in u4
+q:  u4
+load: in u1
+o: out u1
+]
+entity piso2
+ d: in u4;
+ q:  u4;
+ load: in u1;
+ o: out u1;
+begin
+ if load then
+   q<=d
+ else
+   q<=q srl 1
+ end
+ o=q(0)  
+end

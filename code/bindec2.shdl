@@ -1,0 +1,14 @@
+[
+a: in u2
+y3, y2, y1, y0: out u1
+]
+entity bindec2
+ a: in u2;
+ y3,y2,y1,y0: out u1;
+begin
+ y0=0; y1=0; y2=0; y3=0;
+ if a=0 then y0=1 end
+ if a=1 then y1=1 end
+ if a=2 then y2=1 end
+ if a=3 then y3=1 end 
+end

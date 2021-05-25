@@ -1,0 +1,21 @@
+[
+d: in u4
+q:  u1
+load: in u1
+o: out u1
+ser:  u1
+]
+entity piso3
+ ser: in u1
+ d: in u4;
+ q:  u4;
+ load: in u1;
+ o: out u1;
+begin
+ if load then
+   q<=d
+ else
+   q<=ser & q(3 downto 1)
+ end
+ o=q(0)  
+end

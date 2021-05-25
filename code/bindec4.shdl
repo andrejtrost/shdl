@@ -1,0 +1,11 @@
+[
+a: in u2
+y: out u4
+]
+entity bindec4
+ a: in u2;
+ y: out u4;
+ c: u4 = "0001";
+begin
+ y = c sll a
+end

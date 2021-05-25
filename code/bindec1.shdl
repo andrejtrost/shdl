@@ -1,0 +1,13 @@
+[
+a1, a0: in u1
+y3, y2, y1, y0: out u1
+]
+entity bindec1
+ a1,a0: in u1;
+ y3,y2,y1,y0: out u1;
+begin
+ y3 = a0 and a1
+ y2 = not a0 and a1
+ y1 = a0 and not a1
+ y0 = not a0 and not a1
+end

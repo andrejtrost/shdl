@@ -1,0 +1,18 @@
+[
+d: in u1
+enable, set: in u1
+q: out u1
+]
+entity dff
+ d: in u1;
+ enable, set: in u1;
+ q: out u1;
+begin
+ if enable then
+  if set then
+    q <= 1
+  else
+    q <= d
+  end
+ end
+end

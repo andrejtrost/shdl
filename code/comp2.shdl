@@ -1,0 +1,10 @@
+[
+a, b: in u4
+dif: out u1
+]
+entity comp2
+ a,b: in u4;
+ dif: out u1;
+begin
+ dif = 1 when a/=b else 0;
+end

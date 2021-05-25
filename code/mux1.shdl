@@ -1,0 +1,16 @@
+[
+d0, d1, d2, d3: in u1
+s: in u2
+o: out u1
+]
+entity mux1
+ d0,d1,d2,d3: in u1
+ s: in u2;
+ o: out u1;
+begin
+ if s=0 then o = d0
+ elsif s=1 then o = d1
+ elsif s=2 then o = d2
+ else o = d3
+ end
+end
