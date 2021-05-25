@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<title>SHDL-tutor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h2>Small Hardware Description Language</h2>
+
+<p><a href="../index.htm">SHDL</a> |
+<a href="decoder.htm">Decoder</a> |
+<a href="mux.htm">CompMux</a> |
+<a href="reg.htm">Register</a> 
+</p>
+
+<h3>1 Combinational Decoder</h3>
+
+<h4>1.1 Binary decoder - logic (functional) description</h4>
+<p>Binary decoder 2-4 has two single bit input signals a0, a1 and four outputs.
+Each input binary combination sets one output, while the other are 0. 
+Schematic presents decoder circuit made with the logic gates.</p>
+<table>
+<tr><td><img src="DekodLog.png"></td>
+<td><img src="DekodPorts1.png"></td>
+<td><img src="DekodSim.png"></td>
+</tr>
+</table>
+
+<p>Signals with the same mode and data type can be declared
+in the same cell in the model ports and signals table. The logic
+circuit schematic is described with assignment statements and Boolean operators: <a href="../?o=bindec1">bindec1</a></p>
+
+<div class="w3-code">y3 = a0 and a1<br> 
+y2 = not a0 and a1<br> 
+y1 = a0 and not a1<br>
+y0 = not a0 and not a1</div>
+
+<h4>1.2 Binary decoder - behavioral description</h4>
+
+<p>The same decoder can be described in a high-level model. This time the input
+is declared as 2-bit unsigned vector, whith the possible values "00","01","10" or "11" in
+binary or 0,1,2 and 3 in decimal notation. The output y0 is 1 at the input value 0, 
+y1 is 1 at the input 1, y2 is 1 at the input 2 and y3 at 3:</p>
+<img src="DekodPorts.png">
+
+<p>Conditional if statements are used to test input values and set outputs:</p>
+<div class="w3-code">if a=0 then y0=1; y1=0; y2=0; y3=0 end<br>
+if a=1 then y0=0; y1=1; y2=0; y3=0 end<br>
+if a=2 then y0=0; y1=0; y2=1; y3=0 end<br>
+if a=3 then y0=0; y1=0; y2=0; y3=1 end
+</div>
+
+<p>Parsing the presented code creates a latch warning: the latch is synthesized to
+hold output values, if the conditions do not cover all the combinations. One solution
+is to define default output values before conditional statements. In this case, only
+one assignment is required in each if statement: <a href="../?o=bindec2">bindec2</a></p>
+
+<div class="w3-code">y0=0; y1=0; y2=0; y3=0;<br>
+if a=0 then y0=1 end<br>
+if a=1 then y1=1 end<br>
+if a=2 then y2=1 end<br>
+if a=3 then y3=1 end 
+</div>
+
+<p>A sequence of conditions is better described with an if-elsif statement.
+In this case, the last condition (a=3) can be replaced with an else statement:
+</p>
+
+<div class="w3-code">y0=0; y1=0; y2=0; y3=0;<br>
+if a=0 then y0=1 <br>
+elsif a=1 then y1=1 <br>
+elsif a=2 then y2=1 <br>
+else y3=1 end
+</div>
+
+<p>The VHDL code generator will translate this if-elsif-else to a case statement,
+because the conditions are testing the values of a single vector signal. Also the 
+output can be declared as vector and an assignment of the default output values
+is not required any more: <a href="../?o=bindec2a">bindec2a</a></p>
+
+<div class="w3-code">if a=0 then y="0001"<br> 
+elsif a=1 then y="0010"<br> 
+elsif a=2 then y="0100"<br> 
+else y="1000"</div>
+
+<h4>1.3 Binary decoder - combinational table</h4>
+
+<p>Combinational logic can be described with a truth table. The circuit model is then
+based on the table (vector array) declaration and a logic describing reading the array.
+The table is implemented as read-only memory (ROM) or look-up table (LUT) in FPGA.</p>
+
+<p>The array data is described in SHDL with internal signals specified by number and type
+of elements. For example, data type: 4u8 describes an array or four 8-bit vectors.
+The ROM table elements shoud be initialized at the declaration.</p>
+
+<p>Description of a binary decoder using table: <a href="../?o=bindec3">bindec3</a></p>
+
+<div class="w3-code">entity bindec3<br> 
+ a: in u2;<br> 
+ y: out u4;<br> 
+ table: 4u4 = "0001","0010","0100","1000";<br> 
+begin<br> 
+&nbsp;y = table(a)<br> 
+end</div> 
+
+<h4>1.4 Binary decoder - expression</h4>
+
+<p>Some circuits can be best described with mathematical expressions. Binary decoder output
+can be computed by shifting a constant "0001" for a specified number of bits to the left.
+The input vector presents the corresponding number: <a href="../?o=bindec4">bindec4</a></p>
+
+<div class="w3-code">entity bindec4<br> 
+ a: in u2;<br> 
+ y: out u4;<br> 
+ c: u4 = "0001";<br>
+begin<br>
+&nbsp;y = c sll a<br>
+end</div> 
+
+<h4>1.5 Priority encoder</h4>
+
+<p>A priority encoder output index of the input which is set to one. If more than
+one of the inputs are set, the encoder selects the input with the highest index.
+Input signals with higher index have priority over the inputs with lower indices.<p>
+
+<p>The output value 0 could mean two conditions: input with the index 0 is set,
+or no inputs are set. The encoder can have additional output (v, valid) which is
+set only if at least one of the inputs are set.</p> 
+
+<ul><li>d3 d2 d1 d0 = 1000, y = 3, v = 1</li>
+<li>d3 d2 d1 d0 = 1010, y = 3, v = 1  -- d3 has priority over d1</li>
+<li>d3 d2 d1 d0 = 0111, y = 2, v = 1  -- d2 has priority over d1 and d0</li>
+<li>d3 d2 d1 d0 = 0011, y = 1, v = 1  -- d2 has priority over d0</li>
+<li>d3 d2 d1 d0 = 0001, y = 0, v = 1  -- d0 is active</li>
+<li>d3 d2 d1 d0 = 0000, y = 0, v = 0  -- no inputs are active</li>
+</ul>
+
+<p>The input priority is set by the order of HDL if statements. An example of 4-input priority encoder: <a href="../?o=priority">priority</a></p>
+
+<div class="w3-code"> if d(3)=1 then y=3; v=1<br>
+ elsif d(2)=1 then y=2; v=1<br>
+ elsif d(1)=1 then y=1; v=1<br>
+ elsif d(0)=1 then y=0; v=1<br>
+ else y=0; v=0<br>
+ end</div>
+
+<h4>Excercises</h4>
+
+<ul><li>Try to model the binary decoder with a sequence of if statements and with
+one if-elsif-else statement. Observe the difference in generated VHDL code.</li>
+<li>Is the order of the conditions important is this circuit?<br>
+Is it OK to move the statement for setting the output default value to the end of the code?</li>
+<li>Design a demultiplexer which is a binary decoder with an enable input. When the enable is 1,
+the circuit operates as the binary decoder. When the enable is 0, all the outputs are 0.</li>
+<li>Design a model of an encoder with the opposite function of the binary decoder.<br>
+Boolean model: <tt>d = (y(2) or y(3)) & (y(1) or y(3))</tt></li>
+<li>Design a thermometer encoding circuit. A value on the input vector defines
+the number of ones at the output:<br>
+y=000 at 0, 001 at 1, 011 at 2 and 111 at 3.</li>
+</ul>
+
+</div>
+</body>

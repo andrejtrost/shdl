@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<title>Navodila</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h1>Navodila za visokonivojsko modeliranje logike</h1>
+
+<p><a href="sintaksa.htm">Sintaksa</a> | <a href="prevod.htm">Prevajanje</a></p>
+ 
+<h2>Modeliranje in simulacija v treh korakih<h2>
+
+<h3>1. Signali in model vezja</h3>
+
+
+<p>Model digitalnega vezja opišemo v poenostavljenem strojno opisnem jeziku SHDL.
+Model vezja sestavlja: ime entitete, deklaracija signalov in blok stavkov med <b>begin</b> in <b>end</b>.
+Primer modela 4-bitnega števca z omogočanjem štetja (en):</p>
+
+<div class="w3-code">entity stevec<br>
+&nbsp;en: in u1<br>
+&nbsp;st: out u4<br>
+begin<br>
+&nbsp;if (en) then<br> 
+&nbsp;&nbsp; st <= st + 1<br> 
+&nbsp;end<br>
+end
+</div>
+
+<ul><li>Signali vrste <b>in</b> so vhodi,
+<b>out</b> so izhodi, za notranje signale pa pustimo prazno polje.</li>
+<li>Tip določa črka <b>u</b> (unsigned) ali <b>s</b> (signed) in število bitov, ki je med 1 in 64.</li>
+<li>Primer: u1 - enobitni, u4 - 4-bitni nepredznačen in s8 je 8-bitni predznačen signal.</li>  
+</ul>
+
+Signale, ki jih želimo opazovati na simulaciji, deklariramo s pomočjo tabele <span class="w3-light-gray w3-text-black">&nbsp;Ports&nbsp;</span>.
+Tabeli dodajamo vrstice z <span class="w3-text-blue">Add</span> in v vsaki
+vnesemo ime, vrsto (Mode) in tip signala. Če ne določimo signala
+v tabeli, bo dobil privzet podatkovni tip iz nastavitev.</p>
+<img src="ports3.png">
+
+
+<p>Opis vezja naredimo s prireditvenimi in pogojnimi stavki v poenostavljeni sintaksi jezika VHDL.
+Izvajajo se paralelno (sočasno), ker predstavljajo opis delov vezja.</p> 
+<ul>
+<li><b>Blok</b> stavkov je zaporedje stavkov, ki so vsak v svoji vrstici ali pa ločeni s podpičjem.</li>
+<li>Prireditveni stavki z operatorjem <code class="w3-codespan">=</code> se izvedejo takoj (kombinacijsko), z operatorjem <code class="w3-codespan"><=</code> pa ob fronti ure (sekvenčno).</li>
+<li>Pogojni stavek v katerem je en sam stavek zapišemo kompaktno: "<b>if</b> (pogoj) stavek",<br>
+če mu sledi blok več stavkov pa v obliki: "<b>if</b> pogoj <b>then</b> blok stavkov <b>end</b>".<br>
+Pogojni stavek pozna tudi <b>else</b> in <b>elsif</b> za zaporedne pogoje, kot v jeziku VHDL.</li>
+<li>Znotraj bloka lahko le enkrat priredimo vrednost posameznemu signalu!</li>
+<li>Vrstni red prireditev različnim signalom znoraj bloka ni pomemben.</li>
+</ul>
+
+<h3>2. Prevajanje</h3>
+
+<p>Prevajanje modela izvedemo s klikom na gumb <span class="w3-teal">&nbsp;Parse&nbsp;</span>. Prevajalnik bo pod opisom vezja javil
+uspešen zaključek (Parse finished.) ali pa sporočil napako. Sporočilo o napaki vsebuje
+kratek opis in mesto. Primer: <span class="w3-text-red">Napaka</span> v 1:8: Pričakujem ')'!
+sporoča, da smo v prvi vrstici na 8 mestu verjetno pozabili zaklepaj.</p>
+
+<p>Ko model prevedemo brez napak, dobimo v zavihku Analysis tabelo Resources s seznamom zaznanih gradnikov vezja. 
+Zavihek <span class="w3-light-gray w3-text-black">&nbsp;VHDL&nbsp;</span> prikaže kodo modela vezja v jeziku VHDL. Klik na <span class="w3-text-blue">copy</span> uporabimo za enostaven prenos opisa v odložišče
+in nato v programsko opremo za simulacijo in sintezo logike iz jezika VHDL.</p>
+
+<h3>3. Simulacija</h3>
+<img src="hll3.png">
+
+<p>Simulacijo izvedemo tako, da v oknu s signali nastavimo vrednosti vhodov in izvedemo <span class="w3-blue w3-text-black">&nbsp;Run&nbsp;</span>. Vrednost enobitnih signalov nastavljamo z levim klikom na posamezen cikel ali potegom čez več ciklov,
+vrednost vektorja pa se nastavi ob kliku glede na vpisano vrednost okenca <b>Value</b>. Če kliknemo na ime signala
+se odpre pogovorno okno za nastavitev vrednosti v vseh ciklih, z desnim klikom na signal pa preklapljamo med desetiškim, dvojiškim in analognim prikazom. Število simulacijskih ciklov nastavimo v okencu <b>Cycles</b> in ob spremembi ponovno prevedemo vezje.</p>
+</div>
+
+</div>
+</body>

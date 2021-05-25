@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<title>SHDL-tutor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h2>Small Hardware Description Language</h2>
+
+<p><a href="../index.htm">SHDL</a> |
+<a href="decoder.htm">Decoder</a> |
+<a href="mux.htm">CompMux</a> |
+<a href="reg.htm">Register</a> 
+</p>
+
+<h3>3 Register</h3>
+
+<h3>3.1 Flip-flop</h3>
+
+<p>Sequential circuits in SHDL are constrained to synchronous circuits with a single
+clock signal named <em>clk</em>. The sequential SHDL circuits change state at the rising edge of the
+clock; this is in VHDL equivalent to condition if rising_edge(clk).</p>
+
+<p>Circuits are described with synchronous assignment operator &lt;= used to notify, that the assignment
+will execute only after the rising edge of the clock. A basic D flip-flop is only one line in SHDL:</p>
+
+<div class="w3-code">q &lt;= d</div>
+
+<p>Assuming d and q are one bit signals, this line translates in generated VHDL to a process with 
+the clock condition and optional asycnhronous reset (depending on SHDL Setup):</p>
+
+<table>
+<tr><td>
+<pre>-- VHDL: no async reset 
+
+process(clk)
+begin
+ if rising_edge(clk) then
+  q &lt;= d;
+ end if;
+end process;
+</pre>
+</td><td><pre> &nbsp; </pre>
+</td><td>
+<pre>process(clk, rst)
+begin
+ if rst='1' then
+  q &lt;= '0';
+ elsif rising_edge(clk) then
+  q &lt;= d;
+ end if;
+end process;
+</pre>
+</td></tr></table>
+
+<p>With additional conditions one can model a flip-flop including synchronous control inputs.
+An example of D flip-flop with set and clock enable: <a href="../?o=dff">dff</a></p> 
+
+<div class="w3-code">if enable then<br>
+&nbsp; if set then<br>
+&nbsp; &nbsp; q &lt;= 1<br>
+&nbsp; else<br>
+&nbsp; &nbsp; q &lt;= d<br>
+&nbsp; end<br>
+end</div>
+
+<h3>3.2 Register</h3>
+
+<p>Registers are storing vector values and have load control signal for changing the values.
+Description of a register is similar to D flp-flop with enable, only the data input and output
+are declared as multi-bit vectors: <a href="../?o=reg">reg</a></p>
+
+<div class="w3-code">entity reg<br>
+load: u1;<br>
+r, data: u8; <br>
+begin<br>
+&nbsp;if load then<br>
+&nbsp;&nbsp;  r &lt;= data<br>
+&nbsp;end<br>
+end</div>
+
+<h3>3.3 Shift register with flip-flops</h3>
+
+<p>Shift registers are used for parallel serial data transformations. 
+We will look at SIPO and PISO shift register models. They are composed 
+of D flip-flops and multiplexers.</p>
+
+<h4>3.3.1 SIPO with flip-flops</h4>
+
+<p>A Serial-In-Parallel-Out (SIPO) register is made form connected D flip-flops.
+The first flip-flops receives data from serial input and sends ouput to the next flip-flop.
+The flip-flops are described with multiple assignment statements, for example a 4-bit SIPO: <a href="../?o=sipo">sipo</a></p>
+
+<table><tr><td>
+<div class="w3-code">q0&lt;=d<br>
+ q1&lt;=q0<br>
+ q2&lt;=q1<br>
+ q3&lt;=q2<br><br>
+ output=q3 & q2 & q1 & q0</div> 
+</td><td><img src="sipo.png">
+</td></tr></table>
+ 
+<p>The 4-bit vector output is assigned a composed value of all the internal flip-flops. Note that
+the combinational assignment operator is used for the output, because the composition should
+be made of wires and not additional flip-flops.</p>
+ 
+<h4>3.3.2 PISO with flip-flops</h4>
+
+<p>A Parallel-In-Serial-Out (PISO) register loads parallel data and shifts the data to the serial output.
+A small 4-bit PISO model with explicit flip-flops: <a href="../?o=piso1">piso1</a>
+</p>
+
+<div class="w3-code">if load then<br>
+&nbsp; q0&lt;=d(0); q1&lt;=d(1); q2&lt;=d(2); q3&lt;=d(3);<br>
+else<br>
+&nbsp; q0&lt;=q1; q1&lt;=q2; q2&lt;=q3; q3&lt;=0;<br>
+end<br>
+o=q0</div>
+
+<p>The shift register has four one-bit signals q0...q3 and 4-bit input d. When load is 1, the
+flip-flops q0...q3 store input data and when the load is 0, the data is shifted. The value of
+q0 is replaced with q1, q1 with q2, q2 with q3 and the most significant bit is set to 0. 
+Finally, there is a combinational assignment to send the least significant bit to the oputput o.</p>
+
+<h4>3.3.3 PISO with shift operator</h4>
+
+<p>A more concise PISO model is described with shift operators. The operator <b>srl</b> shifts a
+vector value to the right for a specified number of bits: <a href="../?o=piso2">piso2</a></p>
+
+<div class="w3-code">if load then<br>
+&nbsp; q&lt;=d<br>
+else<br>
+&nbsp; q&lt;=q srl 1<br>
+end<br>
+o=q(0)</div>
+
+<h4>3.3.4 Shift register with parallel and serial input</h4>
+
+<p>The PISO can have additional serial input for the value shifted to the flip-flops (instead of zero).
+The shift expression can be described with subvector selection and composition: <a href="../?o=piso3">piso3</a></p>
+
+<div class="w3-code">if load then<br>
+&nbsp; q&lt;=d<br>
+else<br>
+&nbsp; q&lt;=ser &amp; q(3 downto 1)<br>
+end<br>
+o=q(0)</div>
+
+<h4>Exercises</h4>
+
+<ul><li>Design a D flip-flop with synchronous reset and enable.</li>
+<li>Redesign the SIPO (3.3.1) using vector signal q and composition operator.</li>
+<li>Design a model of PISO which shifts input data to the left (use operator sll).<br>
+Add to this model a serial input. You can still use the expression with shift operator,
+just add the input with Boolean or.</li>
+</ul>
+
+
+</div>
+</body>

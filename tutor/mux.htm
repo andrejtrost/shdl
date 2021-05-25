@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<title>SHDL-tutor</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h2>Small Hardware Description Language</h2>
+
+<p><a href="../index.htm">SHDL</a> |
+<a href="decoder.htm">Decoder</a> |
+<a href="mux.htm">CompMux</a> |
+<a href="reg.htm">Register</a> 
+</p>
+
+<h3>2 Comparator and Multiplexer</h3>
+
+<h3>2.1 Comparator</h3>
+
+<p>Binary comparators are composed of logic gates <b>xor</b>. A comparator can be described
+with a Boolean equation. For example a 4-bit non-equality comparator has an output dif which
+is set, when the inputs are different:</p>
+
+<div class="w3-code">dif = (a(3) xor b(3)) or (a(2) xor b(2)) or (a(1) xor b(1)) or (a(0) xor b(0))</div>
+
+<p>The high-level descritopn of a comparator is based on relational operators
+(=, /=, &lt;, &lt;=, &gt;, &gt;=) which leads to much more descriptive code.
+The relational operatos are used in conditions, so the comparator is described
+with a cinditional statement: <a href="../?o=comp1">comp1</a></p>
+
+<div class="w3-code">if (a/=b) then<br>
+ &nbsp; dif = 1<br>
+ else <br>
+ &nbsp; dif = 0<br>
+ end</div>
+
+<p>A shorter HDL description is with conditional assignment operator: <a href="../?o=comp2">comp2</a></p>
+
+<div class="w3-code">dif = 1 when a/=b else 0;</div>
+
+<p>Describing coparators with operator produces short and easy-to-understand circuit model.
+The logic circuit for comparing the vectors is produced by the synthesis tools which builds
+the gate lavel circuit model and takes care of the implementation details (for example difference
+between signed and unsigned magnitude comparisson circuits).</p>
+
+<h3>2.2 Multiplexer</h3>
+<p>A multipexer can be described by a sequence of if statements comparing the control input to 
+constant values.<br>An example of 4-1 multipexer with inputs d0,d1,d2,d3, 2-bit control signal s and output o:
+<a href="../?o=mux1">mux1</a></p>
+</p>
+<div class="w3-code">if s=0 then o = d0<br>
+elsif s=1 then o = d1<br>
+elsif s=2 then  o = d2<br>
+else o = d3<br>
+end</div>
+
+<h3>2.3 Multiplexer with enable</h3>
+
+<p>A multiplexer can have additional input enable. When it is 0, the output is allways 0, when the enable is 1, the multipexer operates normally.
+The multiplexer with enable can be described with different models. Note: the enable signal is one-bit and you can shorten the condition in SHDL;
+instead of <tt>if en=1 then</tt>, you can write: <tt>if en then</tt>:</p>
+
+<table class="w3-table">
+<tr><th>nested condition (2.3.1)</th><th>condition sequence (2.3.2)</th><th>default output (2.3.3)</th></tr>
+<tr><td>
+<div class="w3-code">if en then<br>
+&nbsp;if s=0 then o = d0<br>
+&nbsp;elsif s=1 then o = d1<br>
+&nbsp;elsif s=2 then o = d2<br>
+&nbsp;else o = d3 end<br>
+else o = 0 end</div>
+</td><td>
+<div class="w3-code">if s=0 then o = d0<br>
+elsif s=1 then o = d1<br>
+elsif s=2 then o = d2<br>
+else o = d3 end<br>
+if en=0 then o = 0 end</div>
+</td><td>
+<div class="w3-code">o = 0<br>
+if en and s=0 then o = d0<br>
+elsif en and s=1 then o = d1<br>
+elsif en and s=2 then o = d2<br>
+elsif en then o = d3<br>
+end</div>
+</td></tr></table>
+
+<h3>2.4 Multiplexer with expression</h3>
+
+<p>A multipexer in general has vector data inputs and output. If the multiplexer has one-bit data,
+one can combine all the inputs in one vector and write an expression selecting appropriate bit.<br>
+An example of an 8-1 multiplexer: <a href="../?o=mux2">mux2</a></p>
+
+<div class="w3-code">entity mux2<br>
+ d: in u8;<br>
+ s: in u3;<br>
+ o: out u1;<br>
+begin<br>
+ &nbsp;o = d(s)<br>
+end</div>
+
+<h4>Exercise</h4>
+
+<ul><li>Try all presented high-level models of an multiplexer with enable.<br>
+Why has the model 2.3.2 condition at the end?<br>
+Why is the default value in 2.3.3 specified at the beginning?<br>
+Check what happens if you change this!</li>
+<li>Design 8-1 multiplexer with enable using an expression.</li>
+</ul>
+
+
+</div>
+</body>

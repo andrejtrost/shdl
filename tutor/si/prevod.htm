@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<title>Navodila</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h2>Kako se SHDL prevede v VHDL?</h2>
+
+<p>Naredimo model vezja, ki generira učinek leteče luči. Na vhodu vezja sta enobitna kontronlna signala ena in neg, izhod pa je 4-biten vektor (luc). Vezje vsebuje števec, zato je v jeziku VDHL med priključki tudi ura (clk).</p>
+
+<img src="letluc.png">
+
+<p>Notranji signali se prevedejo v deklaracije signalov, če so refistri dobijo tudi začetno vrednost 0.</p>
+<p>V izhodnem modelu v jeziku VHDL je najprej kombinacijski del vezja: sočasni prireditveni stavki,
+nato je kombinacijski proces, na koncu pa še sekvenčni proces. Prevajalnik poskrbi za pravilen zapis številskih vrednosti in sintakso procesnih stavkov.</p>
+</div>
+</body>

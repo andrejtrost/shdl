@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<title>Navodila</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+<body>
+
+<div class="w3-container w3-padding">
+<h2>Sintaktična pravila za visokonivojsko modeliranje logike</h2>
+
+<p>Visokonivojski model pozna 3 vrste stavkov: kombinacijsko prireditev, sekvenčno
+prireditev in pogojni stavek. V stavkih in pogojih uporabljamo operatorje, ki so v obliki
+operatorjev jezika VHDL (privzeta nastavitev VHDL operators). Model vezja sestavljajo:</p>
+<ul>
+<li>*deklaracija vezja (<b>entity</b> ime_vezja) in signalov</li>
+<li>stavki z opisom vezja med <b>begin</b> in <b>end</b></li>
+</ul>
+
+<p>*Če želimo le preizkusiti, kako se kakšen stavek prevede, lahko deklaracijo vezja izpustimo in
+program bo uporabil privzeto ime vezja.</p>
+
+<h2>Signali in vrednosti</h2>
+
+<p>Signale deklariramo s pomočjo tabele <b>Ports & Signals</b>, kjer določimo imena, mode: 
+<b>in</b> ali <b>out</b> za zunanje oz. prazno za notranje signale, ter podatkovni tip (u1, u8, s4...).
+Ko izpolnimo tabelo, naredimo novo ogrodje opisa vezja s klikom na New in dodamo v urejevalnik stavke.
+Ta postopek uporabimo, ko delamo novo vezje z enostavnimi podatkovnimi tipi. Sicer pa sami napišemo deklaracije v urejevalniku med <b>entity</b> in <b>begin</b>,
+nato pa v tabeli le naštejemo signale za opazovanje na simulatorju.</p>
+
+<p>Enostavni podatkovni tip</p>
+<ul>
+<li>u1, enobitni signali</li>
+<li>u2, u3, ... u63, nepredznačeni vektorji</li>
+<li>s2, s3, ... s32, predznačeni vektorji (opozitivne in negativne vrednosti v dvojiškem komplementu</li>
+</ul>
+
+<p>Sestavljeni podatkovni tip</p>
+<ul>
+<li>3u4, zbirka treh 4-bitnih vrednosti</li>
+<li>(mir, impulz, spusti), naštevni podatkovni tip (za sekvenčni stroj)</li>
+</ul>
+
+<p>Signalom lahko ob deklaraciji določimo začetno vrednost:</p>
+<pre>
+ a: u1 = '0';
+ b: s4 = -2;
+ c: 3u4 = "0001", "0010", "0100";
+</pre>
+
+<p>Načini zapisa številskih vrednosti:</p>
+<ul><li>desetiško: 0, 5, 15, 20</li>
+<li>šestnajstiško: x"A", x"2F" ali: 0xA, 0x2F</li>
+<li>dvojiško: '0', '1', "101", "1111" ali: 0b0, 0b1, 0b101, 0b1111</li>
+</ul>
+
+
+<h2>Operatorji</h2>
+
+<ol><li>Operatorji jezika VHDL</li>
+
+<ul><li>unarni -x ali <b>not</b> x, rezultat je enako velik vektor.</li>
+<li>produkt a * b ima toliko bitov, kot je vsota bitov množencev.</li>
+<li>vsota a <b>+</b> b oz. razlika a <b>-</b> b imata en bit več kot ima daljši izmed operandov.</li>
+<li>sestavljen vektor a <b>&amp;</b> b ima toliko bitov, kot je vsota bitov operandov.</li>
+<li>podvektor, npr. a(7 <b>downto</b> 4) ali krajše a(7:4) oz. posamezen bit a(0)</li>
+<li>logične operacije, npr. a <b>and</b> b, a <b>or</b> b, a <b>xor</b> b imajo toliko bitov, kot ima daljši izmed operandov.</li>
+<li>logično pomikanje desno a <b>srl</b> 1 ali levo a <b>sll</b> 2,
+</ul>
+<li>Primerjalni operatorji VHDL</li>
+<ul><li>primerjava enakosti a = b oz. neenakosti a /= b</li>
+<li>primerjave velikosti: a &gt; b, a &gt;= b, a &lt; b, a &lt;= b</li>
+</ul>
+</ol>
+
+<p>Če je v nastavitvah izbrana sintaksa jezika C, uporabimo ustrezne operatorje tega jezika: (&amp;, |, ^, ~, <<, >>, ==, !=). V tej sintaksi ni na voljo operator spajanja vektorjev.</p>
+
+<h2>Prireditveni stavki</h2>
+
+<p>Prireditveni stavki z operatorjem <code class="w3-codespan">=</code> opisujejo kombinacijsko logiko, 
+ki izračuna izhod ob spremembi kateregakoli signala z desne strani prireditve.
+Uporabljamo ga tudi za nastavljanje konstant. Primer:</p> 
+
+<pre>max = 10;   -- nastavi konstanto
+b0 = g0 <b>xor</b> g1;  -- logična operacija
+sum = a + b + 1; -- aritmetična operacija
+more = 1 <b>when</b> a&gt;1 <b>else</b> 0; -- pogojna prireditev
+</pre>
+
+<p>Prireditveni stavek z operatorjem <code class="w3-codespan"><=</code> predstavlja sekvenčno logiko, ki se ovrednoti enkrat ob vsakem ciklu ure. Primer:</p>
+
+<pre>cnt &lt;= cnt + 1;  -- binarni števec
+</pre>
+
+<h2>Pogojni stavek</h2>
+
+<p>Pogojni stavek opisuje izvajanje prireditev ob določenih pogojih in predstavlja izbiralnike v
+modelu vezja. Pogoj zapišemo med oklepaji za njim pa sledi en stavek v isti vrstici ali pa blok
+stavkov med <b>then</b> in <b>end</b>. Pogoj je lahko tudi vrednost
+nekega signala - pogoj bo izpolnjen, če je različen od 0. Pogojnemu stavku lahko dodamo <b>else</b>,
+ki izvede blok stavkov, kadar pogoj ni izpolnjen. Primer:</p>
+
+<pre><b>if</b> (enable) q &lt;= d; -- enovrstični opis D flip-flopa z omogočanjem (enable)
+
+<b>if</b> rst <b>then</b> -- D flip-flop z resetom
+ q2 &lt;= 0;
+<b>else</b> 
+ q2 &lt;= d;
+<b>end</b> 
+</pre>
+
+<p>Pogojne stavke lahko gnezdimo - zapišemo enega v drugem. Prireditve znotraj pogojnih stavkov
+so kombinacijske in/ali sekvenčne, poskrbeti moramo le za doslednost pri prirejanju istemu signalu.
+Če nekemu signalu priredimo vrednost s sekvenčnim operatorjem, morajo biti vse kasnejše prireditve
+temu signalu tudi sekvenčne. Primer:</p>
+
+<pre>
+q = 0;
+<b>if</b> enable=1 <b>then</b> -- D flip-flop z enable
+ q &lt;= d;
+<b>end</b> 
+</pre>
+
+<p>V kodi je napaka, ker mešamo različne prireditvene operatorje za isti signal. Pravilno bi bilo,
+da je tudi pri prvem stavku uporaben sekvenčni operator: q &lt;= 0;
+Pravilen pa je npr. model števca s prelivom, kjer je števec sekvenčna, preliv pa kombinacijska 
+koda:</p>
+
+<pre><b>if</b> cnt&lt;5 <b>then</b> 
+ cnt &lt;= cnt+1; ov = 0
+<b>else</b> 
+ cnt &lt; = 0; ov = 1 
+<b>end</b></pre>
+
+<p>Kadar imamo več zaporednih pogojev, jih zapišemo v enem pogojnem stavku z več vejitvami 
+(<b>elsif</b>). Primer opisa izbiralnika: </p>
+
+<pre>
+<b>if</b> sel=3 <b>then</b> y=d(3)
+<b>elsif</b> sel=2 <b>then</b> y=d(2)
+<b>elsif</b> sel=1 <b>then</b> y=d(1)
+<b>else</b> y=d(0) 
+<b>end</b>
+</pre>
+
+</div>
+</body>
