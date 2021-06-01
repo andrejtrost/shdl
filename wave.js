@@ -1,4 +1,4 @@
-/*File: wave.js, version 3.7 */
+/*File: wave.js, version 3.8 */
 /* jshint esversion: 6, bitwise: false*/
 /* globals model, getPorts, getSignals, boardSim, boardDes */
 /* getCycles()		// vhdl
@@ -8,8 +8,9 @@
   getInValues(i)	// parsesim
   setSignal(i, name, value) // parsesim
   setSignalDump(t0, t1, a)  // userint
-  dump2string()			// userint */
-
+  dump2string()			// userint 
+  vcd2string(), VCDout() */
+  
 const RGBin = "black";
 const RGBout = "blue";
 const RGB = "darkblue";
@@ -838,4 +839,90 @@ function dump2string() {
  s += "#"+dt+"\n*/";
 
  return s;
+}
+
+// V33a, VCD output to string (from vhdl.js)
+function VCD2string() {
+  let s = "";
+
+  if (model) {
+	if (model.changed()) {parseCode();} // recompile on change
+  } else {
+	 return s;
+  }
+
+  const d = new Date();
+  s += "$date\n "+d.getDate() + "-" + (d.getMonth() + 1) + "-" + d.getFullYear()+"\n$end\n";
+  s += "$version\n SHDL\n$end\n";
+  
+  const p = setup.clkPeriod;
+  s += "$timescale 1ns $end\n";
+  s += "$scope module "+model.name()+" $end\n";
+  s += ""
+  let wcode = 35;
+  
+  if (isSequential()) {
+	s += "$var wire 1 "+String.fromCharCode(wcode)+" clk $end\n"; 
+  }
+  wcode += 1;
+
+  let sigMap = new Map();
+
+  model.ports.forEach(function (val, id) {
+    sigMap.set(id, wcode);       
+    s += "$var wire "+val.type.size+" "+String.fromCharCode(wcode)+" "+id+" $end\n";
+    wcode += 1;
+  });
+  
+  s += "$upscope $end\n$enddefinitions $end\n";
+  s += "$dumpvars\n";
+  
+  const cycles = getCycles();
+  const vrstice = ports.length;
+  let repeat = 0;
+  let change = false;
+  let wait = false; 
+  let bits = 0;
+
+  for (let c = 0; c < cycles; c++) {
+	change = false;
+	wait = false;
+    
+	for (let v = 0; v < vrstice; v++) {
+		// koda le ob spremembi vrednosti pri in ali inOut signalih
+		if (c==0 || (signals[v][c] != signals[v][c-1])) {
+		  if (c>0 && wait===false) {
+              s+="#"+Number(c)*Number(p)+"\n";
+			  repeat = 0;
+			  wait = true;
+		  }
+          if (c>0) {change = true;}
+          
+          if(ports[v] instanceof Bit) s += signals[v][c].valueOf()+String.fromCharCode(sigMap.get(ports[v].name))+"\n";
+		  else {
+            let bits = Number(signals[v][c]);
+			if (bits<0) bits = bits & ( Math.pow(2, ports[v].size) - 1);
+			bits = bits.toString(2);
+          
+            s += "b"+bits+" "+String.fromCharCode(sigMap.get(ports[v].name))+"\n";
+          }
+		}
+	}
+	if (c>0 && change===false) {repeat += 1;}
+      if (isSequential()) {
+       s+="1#\n";
+
+       s+="#"+(Number(c)*Number(p)+Number(p)/2)+"\n";
+       s+="0#\n";
+      }
+  }
+  s+="#"+Number(cycles)*Number(p)+"\n";
+
+  return s;
+}
+
+function VCDout()
+{
+    setHDL(VCD2string());
+   //setHDL(dump2string());
 }

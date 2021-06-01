@@ -1,7 +1,9 @@
-/*File: model.js,  version 3.7t */
+/*File: model.js,  version 3.8t */
+/* 3.8, experimental Verilog support */
 /*jshint esversion: 6 */
 /*jslint bitwise: true */
 /*global setLog, setup, vec, isComparisonOp, modelErr, modelWarn, model, resEnabled, resEst */
+/*       setup.verilog */
 /* Methods: common
  get(), set() - get or set object
  val() - return numeric(vector) value of num, var or op
@@ -56,7 +58,7 @@ function bitString(valStr, size) {  // number to VHDL binary bit string
 	return "\""+bin.slice(-size)+"\""; // Number overflow
 }
 
- // number to VHDL code: convert, resize, set format
+ // number to VHDL/Verilog code: convert, resize, set format
  //  in: value string, type: size, unsigned and out format specifier
  function numVHD(numStr, objType, outFormat) {
 	if (objType.size === undefined || objType.unsigned === undefined) {
@@ -71,9 +73,11 @@ function bitString(valStr, size) {  // number to VHDL binary bit string
 		if (num!==0 && num!==1) {
 			setLog("emitVHD: Assigned value '"+numStr+"' expected 0 or 1!");
 		}
-		if (num%2===0) {return "'0'";}
-		return "'1'";
-	}
+		if (setup.verilog) {return (num%2===0)? 0 : 1;}
+		return (num%2===0)? "'0'" : "'1'";		
+	} 
+	
+	if (setup.verilog) {return num;}
 
 	if (outFormat==="b" || (outFormat==="" && size <= setup.maxBinSize)) { // output string literal
 		return bitString(num, size);
@@ -390,6 +394,12 @@ console.log("** set next val"+range+update);
 
 	function emitVHD() {
 		stat.addName(variable.get().name);//12.3.
+        if (setup.verilog) {
+            if (range===-1) {return variable.get().name+"["+index.get().name+"]";}
+            if (range===low) {return variable.get().name+"["+range+"]";}
+            return variable.get().name+"["+range+" : "+low+"]";
+        } 
+        
 		if (range===-1) {
             if (type(index).size==1) {return variable.get().name+"(to_integer(unsigned'(\"\" & "+index.get().name+")))";}
             return variable.get().name+"(to_integer("+index.get().name+"))";
@@ -521,6 +531,7 @@ function Var(varName) { "use strict";
 	}
 
 	if (o.hasOwnProperty("hdl")) {
+		if (o.hdl.hasOwnProperty("reg")) {obj.hdl.reg = o.hdl.reg; s+=" reg:"+o.hdl.reg;}
 		if (o.hdl.hasOwnProperty("mode")) {obj.hdl.mode = o.hdl.mode; s+=" mode:"+o.hdl.mode;}
 		if (o.hdl.hasOwnProperty("assignments")) {obj.hdl.assignments = o.hdl.assignments; s+=" a:"+o.hdl.assignments;}
 		if (o.hdl.hasOwnProperty("assignop")) {obj.hdl.assignop = o.hdl.assignop; s+=" op"+o.hdl.assignop;}
@@ -868,6 +879,24 @@ console.log("*Op: "+obj.op+" type "+obj.type.id+" NT "+nt);*/
 	let lt = null;
 	let rt = null;
 	let num = 0;
+
+	if (setup.verilog) {
+		if (obj.op==="") {	// only one operand        
+			str += obj.left.emitVHD();
+		} else { // operator and operands
+			str = (obj.op===",")? "{" : "("; // use { for concatenation operand
+			if (obj.left!==null) { // visit left
+				str += obj.left.emitVHD();			
+			}
+			str += " "+obj.op+" ";
+			if (obj.right!==null) { // visit right
+				str += obj.right.emitVHD();
+			}
+			str += (obj.op===",")? "}" : ")";
+		}
+		return str;
+	}
+
 
 	if (obj.op==="") {  // single operand, check operand & op data type
 		str="";
@@ -1252,7 +1281,7 @@ function Statement(t) {  "use strict";
 		let assignments = 0;
 		if (log) {console.log("Statement.visit: "+pass+" bck="+block.name);}
 
-        if (pass===1) { // first pass, indentify number & type of assignments, count operands
+        if (pass===1) { // first pass, indentify number & type of assignments, count operands		  
             if (obj.id==="<=") {stat.addID(obj.target.get().name, Resource.FF);} // save id
 
             let assignop = hdl(obj.target).assignop;
@@ -1387,7 +1416,7 @@ console.log("# Visit target "+obj.target.get().name+"block: "+block.name);
                 }
             }
             // out signal used as inout
-            if (mode(obj.target)==="out" && hdl(obj.target).mode==="inout") {
+            if (!setup.verilog && mode(obj.target)==="out" && hdl(obj.target).mode==="inout") {
                 const old = obj.target;
 
                 old.set({hdl: {mode: "out"}});
@@ -1495,6 +1524,14 @@ console.log("St.emit left:"+lsz+" r:"+rsz);
 	function emitVHD(indent, isComb) {
 		let str = "";
 		let spaces = " ".repeat(indent)+" ".repeat(3*Number(obj.level));
+
+		if (setup.verilog) {
+          if ((obj.id==="=" && isComb) || (obj.id==="<=" && !isComb)) {
+			const asop = (obj.id==="<=") ? " <= " : " = ";
+			str = spaces + obj.target.emitVHD()+asop+emitExpr(isComb)+";\n";
+          }
+			return str;
+		}
 
 		if ((obj.id==="=" && isComb) || (obj.id==="<=" && !isComb)) {	// assignment
 			str = spaces + obj.target.emitVHD()+" <= "+emitExpr(isComb)+";\n";
@@ -1656,28 +1693,46 @@ console.log("IFCS +cp="+obj.combProc+" +sp="+obj.seqProc);
             let as = obj.ifBlock.statements[0];
             let as2 = obj.elseBlock.statements[0];
         
-            str = " "+as.get().target.emitVHD()+" <= "+as.emitExpr(isComb);
-            str += " when "+condStr+" else "+as2.emitExpr(isComb)+";\n";
+            if (setup.verilog) { 
+                str = as.get().target.emitVHD()+" = ("+condStr+")? "+as.emitExpr(isComb);
+                str += " : " + as2.emitExpr(isComb) + ";\n"; 
+            } else {
+                str = " "+as.get().target.emitVHD()+" <= "+as.emitExpr(isComb);
+                str += " when "+condStr+" else "+as2.emitExpr(isComb)+";\n";
+            }
         } else if ((obj.combProc && isComb) || (obj.seqProc && !isComb)) {
             str = "";
+            
+            
 			const bitSize = type(obj.expr.getLeft()).size;
 			let bv = ""; // V33 bit string or signal name
-            if (type(obj.expr.getRight()).id === "num") { bv = bitString(obj.expr.getRight().emitVHD(), bitSize);}
+
+            if (obj.expr.getOp()!=="") { // V38
+                if (type(obj.expr.getRight()).id === "num") { bv = bitString(obj.expr.getRight().emitVHD(), bitSize);}
             else {bv = obj.expr.getRight().emitVHD(); }
+            } 
             if (obj.elsif!==1) { // start new conditional statement
                 if (obj.els && obj.isCase) {
-                    str += spaces + "case "+obj.expr.getLeft().emitVHD()+" is\n";
-                    str += spaces + " when "+bv+" =>\n";
+                    if (setup.verilog) {
+                        str += spaces + "case ("+obj.expr.getLeft().emitVHD()+")\n";
+                        str += spaces + " "+bv+":\n";                        
+                    } else {                    
+                        str += spaces + "case "+obj.expr.getLeft().emitVHD()+" is\n";
+                        str += spaces + " when "+bv+" =>\n";
+                    }
                 } else {
-                    str += spaces + "if "+condStr+" then\n";
+                    if (setup.verilog) {str += spaces + "if ("+condStr+") begin\n";}
+                    else {str += spaces + "if "+condStr+" then\n";}
                 }
             } else {            // continue conditional (elsif or when)
                 if (doCase) {
                     //const bitSize = type(obj.expr.getLeft()).size;
                     //let bv = bitString(obj.expr.getRight().emitVHD(), bitSize);
-                    str += " when "+bv+" =>\n";
+                    if (setup.verilog) {str += " "+bv+":\n";}
+                    else {str += " when "+bv+" =>\n";}
                 } else {
-                    str += "if "+condStr+" then\n";
+                    if (setup.verilog) { str += "if ("+condStr+") begin\n"; }
+                    else { str += "if "+condStr+" then\n"; }
                 }
             }
 
@@ -1700,8 +1755,14 @@ console.log("IFCS +cp="+obj.combProc+" +sp="+obj.seqProc);
                     if (doCase) { elseKey += spaces; } // ...+when
                     else { elseKey += spaces+"els"; }  // ...+els+if
                 } else {
-                    if (doCase && obj.elsif===1 && !obj.els) { elseKey+=spaces+" when others =>\n"; }
-                    else {elseKey += spaces+"else\n"; }
+                    if (doCase && obj.elsif===1 && !obj.els) { 
+                        if (setup.verilog) {elseKey+=spaces+" default:\n";}
+                        else {elseKey+=spaces+" when others =>\n"; }
+                    }
+                    else {
+						if (setup.verilog) {elseKey += spaces+"end else begin\n";}
+                        else {elseKey += spaces+"else\n";}
+					}
                 }
 
                 obj.elseBlock.statements.forEach(function(st) {
@@ -1716,9 +1777,17 @@ console.log("IFCS +cp="+obj.combProc+" +sp="+obj.seqProc);
 
             if (obj.elsif!==1) { // end if (case)
                 if (doCase) {
-                    if (obj.isOthers===false) { str += spaces+" when others => null;\n";}
-                    str += spaces + "end case;\n";
-                } else { str += spaces + "end if;\n"; }
+                    if (setup.verilog) {
+                        if (obj.isOthers===false) { str += spaces+" default: ;\n";}
+                        str += spaces + "endcase\n";
+                    } else {
+                        if (obj.isOthers===false) { str += spaces+" when others => null;\n";}
+                        str += spaces + "end case;\n";
+                    }
+                } else { 
+                  if (setup.verilog) {str += spaces + "end\n"; }
+                else {str += spaces + "end if;\n"; }
+                }
             }
         }
 		return str;

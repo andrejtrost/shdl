@@ -2,7 +2,7 @@
 /*jshint esversion: 6 */
 /*jslint bitwise: true */
 
-const parseVersion = "V.37";
+const parseVersion = "V.38";
 const MAXITER = 20;
 const MAXCYC = 1000;
 const logParse = false;
@@ -288,7 +288,8 @@ function Parse(k) {
 			return n;
 		}
 		else if (t.isNum()) { // number
-			let token = consume();			
+			let token = consume();
+		
 			let num = new NumConst(token.id, token.format()); 
 			n.left(num); 			
 			n.set({type: type(num)});
@@ -557,7 +558,7 @@ function Parse(k) {
 			let sz = Math.max(type(e).size, type(e2).size);			
 			e.set({type: {unsigned: true, size: 1}});
 			
-		} else if (boolRel && type(e).bool!==true) { // add required operator (value != 0)			
+		} else if (boolRel && type(e).bool!==true & !setup.verilog) { // add required operator (value != 0)			
 			let o = "!=";
 			let rightObj = new NumConst(0); 
 			
@@ -573,7 +574,9 @@ function Parse(k) {
 				e = new Op({op:o, left:e, right:null}, {...type(e)}); // V34c, copy type properties
 			}										
 			e.right(rightObj);
-		}
+		} else {
+            
+        }
 		
 		//let logstr = e.visit(true);   // visit operator for statistics
 		return e;

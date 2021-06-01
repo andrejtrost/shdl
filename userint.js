@@ -1,4 +1,4 @@
-/*File: userint.js (version 3.7) */
+/*File: userint.js (version 3.8) */
 /*jshint esversion: 6 */
 
 let boardSim = false; // V34
@@ -13,15 +13,17 @@ const maxPorts = 25;
 
 /* GLOBAL setup: 
     ver: version string, sytnaxC: true for C op syntax,
+	
     nPorts: initial number of ports in HTML table
 	maxBinSize: max size of binary bit string for unspecified literals
 */
-let setup = {ver: 0, syntaxC: false, nPorts: 3, maxBinSize: 8, vhdl2008: true, stdlogic: true, rst: true, convUnused: false, clkPeriod: 10, vcd: false, defName: "Logic", portDisable:false, rtl:true};
+let setup = {ver: 0, syntaxC: false, vhdl2008: false, verilog: true, nPorts: 3, maxBinSize: 8, stdlogic: true, rst: true, convUnused: false, clkPeriod: 10, vcd: false, defName: "Logic", portDisable:false, rtl:true};
 
 // VHDL keywords or reserved identifiers
 const VHDLrsv=["abs","configuration","impure","null","rem","type","access","constant","in","of","report","unaffected","after","disconnect","inertial","on","return","units","alias","downto","inout","open","rol","until","all","else","is","or","ror","use","and","elsif","label","others","select","variable","architecture","end","library","out","severity","wait","array","entity","linkage","package","signal","when","assert","exit","literal","port","shared","while","attribute","file","loop","postponed","sla","with","begin","for","map","procedure","sll","xnor","block","function","mod","process","sra","xor","body","generate","nand","pure","srl","buffer","generic","new","range","subtype","bus","group","next","record","then","case","guarded","nor","register","to","component","if","not","reject","transport","std_logic","signed","unsigned","rising_edge","resize","to_signed","to_unsigned",
 "rtl"]; 
 
+const Verrsv=["always","end","ifnone","or","rpmos","tranif1","and","endcase","initial","output","rtran","tri","assign","endmodule","inout","parameter","rtranif0","tri0","begin","endfunction","input","pmos","rtranif1","tri1","buf","endprimitive","integer","posedge","scalared","triand","bufif0","endspecify","join","primitive","small","trior","bufif1","endtable","large","pull0","specify","trireg","case","endtask","macromodule","pull1","specparam","vectored","casex","event","medium","pullup","strong0","wait","casez","for","module","pulldown","strong1","wand","cmos","force","nand","rcmos","supply0","weak0","deassign","forever","negedge","real","supply1","weak1","default","for","nmos","realtime","table","while","defparam","function","nor","reg","task","wire","disable","highz0","not","release","time","wor","edge","highz1","notif0","repeat","tran","xnor","else","if","notif1","rnmos","tranif0","xor"];
 
 function CloseGraph() {
  document.getElementById("overlay").classList.remove("show");   
@@ -85,10 +87,25 @@ function getSetup() { // read document form settings, display version
 	const v = (parseVersion===undefined) ? -1 : parseVersion;
  
 	document.getElementById('version').innerHTML = v;
-	const synt = document.getElementById("syntaxc").checked;
-	setup.syntaxC = synt;
+	
+	const radios = document.getElementsByName('syntax');
+	let lang;
+    for (let i = 0, length = radios.length; i < length; i++) {
+      if (radios[i].checked) {
+		 lang = parseInt(radios[i].value);
+         break;
+      }
+    }
+	
+	if (lang===2) {
+		document.getElementById("hdl").value = "Verilog";
+		setup.syntaxC = false; setup.verilog = true;
+	} else {
+	  document.getElementById("hdl").value = "VHDL";
+	  setup.vhdl2008 = (lang===1)? true : false;
+	  setup.syntaxC = false; setup.verilog = false;
+	}
 
-	setup.vhdl2008 = document.getElementById("lang2008").checked;
 	setup.stdlogic = document.getElementById("stdlogic").checked;
 	setup.rst = document.getElementById("rst").checked;
 	setup.rtl = document.getElementById("rtl").checked;
@@ -150,7 +167,11 @@ function parsePorts(id, m, s, decl) {
 	
 	const sId=id.toLowerCase();
 	if (!namepatt.test(id)) {throw modelErr("nam", id);} 
-	if (VHDLrsv.indexOf(sId)>=0) { throw modelErr("rsv",id); } 		
+	if (setup.verilog) {
+		if (Verrsv.indexOf(sId)>=0) {throw modelErr("rsv",id); }
+	} else {
+		if (VHDLrsv.indexOf(sId)>=0) {throw modelErr("rsv",id); }
+	}
 	
     if (m==="sig") {m = "";}
 	if (!(m==="in" || m==="out" || m==="")) {
@@ -264,8 +285,8 @@ function getPorts(qual) {  // get Ports data from html form, V33 add from model
 	return signals;
 }
 
-function copyVHDL() {
-	let el = document.getElementById("vhdllog");
+function copyHDL() {
+	let el = document.getElementById("hdllog");
     let range = document.createRange();
 	range.selectNodeContents(el);
 	let sel = window.getSelection();
@@ -274,8 +295,8 @@ function copyVHDL() {
 	document.execCommand("copy");	
 }
 
-function setVHDL(str) {
-    document.getElementById("vhdllog").innerHTML = str;
+function setHDL(str) {
+    document.getElementById("hdllog").innerHTML = str;
 }
 
 function toggleSection(id) {
@@ -300,7 +321,7 @@ function switchDiv(id) { // switch html div display
         document.getElementById("porttable").style.display = "none";
         document.getElementById("ports").className = "w3-button w3-light-gray";   
         document.getElementById("vhdlout").style.display = "none";
-        document.getElementById("vhdl").className = "w3-button w3-light-gray";
+        document.getElementById("hdl").className = "w3-button w3-light-gray";
         document.getElementById("boardsim").style.display = "none";
         document.getElementById("board").className = "w3-button w3-light-gray";
         document.getElementById(id).style.display = "block";        
@@ -313,7 +334,7 @@ function switchDiv(id) { // switch html div display
         document.getElementById("boardsim").style.display = "none";
         document.getElementById("board").className = "w3-button w3-light-gray";
         document.getElementById(id).style.display = "block";
-        document.getElementById("vhdl").className = "w3-button w3-blue";
+        document.getElementById("hdl").className = "w3-button w3-blue";
         break;
       case "boardsim": 
         boardSim = true;
@@ -322,7 +343,7 @@ function switchDiv(id) { // switch html div display
         document.getElementById("analysis").style.display = "none";
         document.getElementById("anal").className = "w3-button w3-light-gray";
         document.getElementById("vhdlout").style.display = "none";
-        document.getElementById("vhdl").className = "w3-button w3-light-gray";
+        document.getElementById("hdl").className = "w3-button w3-light-gray";
         document.getElementById(id).style.display = "block"; 
         document.getElementById("board").className = "w3-button w3-blue";
         break;
@@ -331,12 +352,14 @@ function switchDiv(id) { // switch html div display
         document.getElementById("analysis").style.display = "none";
         document.getElementById("anal").className = "w3-button w3-light-gray";
         document.getElementById("vhdlout").style.display = "none";
-        document.getElementById("vhdl").className = "w3-button w3-light-gray";
+        document.getElementById("hdl").className = "w3-button w3-light-gray";
         document.getElementById("boardsim").style.display = "none";
         document.getElementById("board").className = "w3-button w3-light-gray";
         document.getElementById(id).style.display = "block"; break;
   }  
 }
+
+// V3.8 check not used?
 
 function show(id, vhdl) {
     document.getElementById(id).style.display = "block";
